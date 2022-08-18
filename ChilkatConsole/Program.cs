@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace ChilkatConsole
 {
@@ -15,7 +17,8 @@ namespace ChilkatConsole
 
             //JWSUsingHMACSHA256();
             //JWSGetProtectedHeader();
-            X509OpenCertificate();
+            X509OpenCertificateFromAppleCer();
+            //X509OpenCertificateFromString();
         }
 
         static void JWSUsingHMACSHA256()
@@ -136,7 +139,7 @@ namespace ChilkatConsole
 
         }
 
-        static void X509OpenCertificate()
+        static void X509OpenCertificateFromAppleCer()
         {
 
             // The path to the certificate.
@@ -145,6 +148,44 @@ namespace ChilkatConsole
 
             // Load the certificate into an X509Certificate object.
             X509Certificate cert = new X509Certificate(Certificate);
+
+            // Get the value.
+            string resultsTrue = cert.ToString(true);
+
+            // Display the value to the console.
+            Console.WriteLine(resultsTrue);
+
+            // Get the value.
+            string resultsFalse = cert.ToString(false);
+
+            // Display the value to the console.
+            Console.WriteLine(resultsFalse);
+
+        }
+
+        static void X509OpenCertificateFromString()
+        {
+            string cer = @"-----BEGIN CERTIFICATE-----
+MIIC3zCCAccCAQAwTzEOMAwGA1UEAwwFYWxsYW4xCzAJBgNVBAYTAkJSMRcwFQYD
+VQQIDA5SaW8gZGUgSmFuZWlybzEXMBUGA1UEBwwOUmlvIGRlIEphbmVpcm8wggEi
+MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC/w6Fn1Rai/ZJ/7FmHLznLV/fl
+FAHdW3AByld4Fl8wdlo/m94K0gqMYi2zwFhVLWDj/oFPncQ4ye1LIOBWoIeju9Xg
+5bhIvOyz5E2CzIRi7tCQjYgq7mw2J+d3ZBtFfp09GdKglh2VxcmVijOUiJAIHge5
+Jp4RVDyok/I23bU0s0Eg+PZ4BKYD2ZO/nx0SB9w8oM8Pe5Evj5KjbItNFscKML73
+N+/5yhFtsAAFXfo6HN9Kjft0QCUGWfK+2Uq3zqG+cAMOnHy2ybht/4RYQk8VUoc0
+uSCP3Vq8tOzf8mZkicvyx0WOD7GdvvCBcBR7TFBEg28JgcXzKiLkAxXDA8bxAgMB
+AAGgSzBJBgkqhkiG9w0BCQ4xPDA6MA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8E
+CDAGAQH/AgEBMBQGA1UdEQQNMAuCCWFsbGFuLmNvbTANBgkqhkiG9w0BAQsFAAOC
+AQEAqPSAiWuHdOSDceKW2z6dGr/vqkPoGyeuzJtY2VAxGMBEtAmzoXL2exYTi2Gg
+mFg79eaU1WNascka63T6vRRFfV1l1rE82YFb0Mm0myE76FjEcgB4L3NmPvlCx73e
+XetCuawjQy/m+sOfsKWgVkWz8q7iq3hbRWwvY2aWzXVCPXAk7HlNssaR41/7lzkz
+PVX4ZKWxb4alCAoJx64Xp3yfH1mxx3Si1Co+Kst5yKUtwC3FQAl7hNrN5WZ0xmWV
+OJviZNIjTqz7KonfhADuqmJcOt37ArG0EXNE3PXGbeCc2KJqFUNC6hVX30iGbWAy
+CHFQsnXEa72fVOum1T8KkGzaJw==
+-----END CERTIFICATE-----";
+
+            // Load the certificate into an X509Certificate object.
+            X509Certificate cert = new X509Certificate(Encoding.Default.GetBytes(cer));
 
             // Get the value.
             string resultsTrue = cert.ToString(true);
