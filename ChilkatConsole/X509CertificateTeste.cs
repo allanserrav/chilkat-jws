@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace ChilkatConsole
 {
+
     public class X509CertificateTeste
     {
+        const string APPLE_ROOT_CA_G3_FINGERPRINT = "63:34:3A:BF:B8:9A:6A:03:EB:B5:7E:9B:3F:5F:A7:BE:7C:4F:5C:75:6F:30:17:B3:A8:C4:88:C3:65:3E:91:79";
         public X509CertificateTeste()
         {
         }
@@ -15,7 +18,75 @@ namespace ChilkatConsole
         public static void ValidateAppleProtectedHeader(AppleProtectedHeader header)
         {
             var x509certs = header.X5C.Select(x => new X509Certificate2(Encoding.Default.GetBytes(x))).ToList();
-            //x509certs.All(x => x.PublicKey()
+
+            bool dateValid = x509certs.All(x => x.NotBefore < DateTime.Now && DateTime.Now < x.NotAfter);
+            if (!dateValid)
+            {
+                throw new Exception("Data Inválida");
+            }
+
+            // Check that each certificate, except for the last, is issued by the subsequent one.
+            if (x509certs.Count >= 2)
+            {
+                for (int i = 0; i < x509certs.Count - 1; i++)
+                {
+                    var subject = x509certs[i];
+                    var issuer = x509certs[i + 1];
+
+                    bool validateIssuer = subject.IssuerName.Equals(issuer.FriendlyName);
+                    bool validatePublicKey = subject.PublicKey.Equals(issuer.PublicKey);
+                    if (!validateIssuer || !validatePublicKey)
+                    {
+                        throw new Exception("Issuer inválido");
+                    }
+                }
+            }
+
+            // Ensure that the last certificate in the chain is the expected Apple root CA.
+            if (x509certs[^1].Thumbprint != APPLE_ROOT_CA_G3_FINGERPRINT)
+            {
+                throw new Exception("Apple root CA inválido");
+            }
+        }
+
+        public static void ValidateAppleProtectedHeader2(AppleProtectedHeader header)
+        {
+            var x509certs = header.X5C.Select(x => new X509Certificate2(Encoding.Default.GetBytes(x))).ToList();
+            var file = new FileInfo(@"C:\Users\vasco\Downloads\AppleRootCA-G3.cer");
+            var authority = GetCertificateByFile(file);
+
+            // Check that each certificate
+            foreach(var x509cert in x509certs)
+            {
+                if (!TryGetBuildChain(x509certs.Last(), authority, out var chain1))
+                {
+                    throw new Exception("Certificado inválido");
+                }
+            }
+
+            // Ensure that the last certificate in the chain is the expected Apple root CA.
+            if (TryGetBuildChain(x509certs.Last(), authority, out var chain))
+            {
+                var valid = chain.ChainElements
+                .Cast<X509ChainElement>()
+                .Any(x => x.Certificate.Thumbprint == authority.Thumbprint);
+
+                if (!valid)
+                    throw new Exception("Apple root CA inválido");
+            }
+        }
+
+        public static bool TryGetBuildChain(X509Certificate2 client, X509Certificate2 authority, out X509Chain chain)
+        {
+            chain = new X509Chain();
+
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+
+            chain.ChainPolicy.ExtraStore.Add(authority);
+
+            // Do the preliminary validation.
+            return chain.Build(client);
         }
 
         public static bool ChainVerifyWithPolicy(string x5c)
@@ -29,6 +100,12 @@ namespace ChilkatConsole
 
             bool r = ch.Build(certificate);
             return r;
+        }
+
+        public static X509Certificate2 GetCertificateByFile(FileInfo file)
+        {
+            // Load the certificate into an X509Certificate object.
+            return new X509Certificate2(file.FullName);
         }
 
         public static void DisplayStoreCertificates()

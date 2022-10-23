@@ -8,8 +8,6 @@ namespace ChilkatConsole
 {
     internal class Program
     {
-        static string APPLE_ROOT_CA_G3_FINGERPRINT = "63:34:3A:BF:B8:9A:6A:03:EB:B5:7E:9B:3F:5F:A7:BE:7C:4F:5C:75:6F:30:17:B3:A8:C4:88:C3:65:3E:91:79";
-
         static async Task Main(string[] args)
         {
             Chilkat.Rest rest = new Chilkat.Rest();
@@ -81,7 +79,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmJmIjoxNTU
             //X509CertificateTeste.ChainVerifyWithPolicy(appleCsr);
             string protectedHeader = SecurityTokenTeste.GetProtectedHeader(appleSignedPayloadJWS);
             var obj = JsonConvert.DeserializeObject<AppleProtectedHeader>(protectedHeader);
-            X509CertificateTeste.ValidateAppleProtectedHeader(obj);
+            X509CertificateTeste.ValidateAppleProtectedHeader2(obj);
         }
 
 
